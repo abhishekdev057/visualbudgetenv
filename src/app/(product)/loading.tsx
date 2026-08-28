@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="page"><div className="skeleton header-skeleton"/><div className="skeleton hero-skeleton"/><div className="skeleton panel-skeleton"/><div className="skeleton-grid"><div className="skeleton card-skeleton"/><div className="skeleton card-skeleton"/></div></div>}

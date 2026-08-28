@@ -1,0 +1,94 @@
+openapi: 3.1.0
+info:
+  title: Envelope API
+  version: 1.0.0
+  description: Versioned API for Envelope web and mobile clients. Money is represented as decimal strings.
+servers:
+  - url: /api/v1
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+    cookieAuth: { type: apiKey, in: cookie, name: envelope_session }
+  schemas:
+    Money: { type: string, pattern: '^\d+(\.\d{2})$' }
+    Error:
+      type: object
+      required: [success, error]
+      properties:
+        success: { const: false }
+        error:
+          type: object
+          required: [code, message]
+          properties: { code: { type: string }, message: { type: string }, details: {} }
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post: { security: [], summary: Register, responses: { '201': { description: Account created }, '422': { description: Invalid input } } }
+  /auth/login:
+    post: { security: [], summary: Sign in, responses: { '200': { description: Authenticated }, '401': { description: Invalid credentials } } }
+  /auth/logout:
+    post: { summary: Revoke current session, responses: { '200': { description: Signed out } } }
+  /auth/me:
+    get: { summary: Current user, responses: { '200': { description: User }, '401': { description: Unauthenticated } } }
+  /auth/change-password:
+    post: { summary: Change password and rotate sessions, responses: { '200': { description: Password changed }, '422': { description: Current password invalid } } }
+  /profile:
+    get: { summary: Get profile, responses: { '200': { description: Profile } } }
+    patch: { summary: Update profile, responses: { '200': { description: Updated } } }
+  /settings:
+    get: { summary: Get settings, responses: { '200': { description: Settings } } }
+    patch: { summary: Update settings, responses: { '200': { description: Updated } } }
+  /budgets:
+    get: { summary: List budget months, responses: { '200': { description: Budgets } } }
+    post: { summary: Create budget month, responses: { '201': { description: Budget created }, '409': { description: Month exists } } }
+  /budgets/current:
+    get:
+      summary: Read a month summary
+      parameters:
+        - { in: query, name: year, schema: { type: integer } }
+        - { in: query, name: month, schema: { type: integer, minimum: 1, maximum: 12 } }
+      responses: { '200': { description: Budget summary or null } }
+  /budgets/{id}:
+    parameters: [ { in: path, name: id, required: true, schema: { type: string, format: uuid } } ]
+    get: { summary: Budget summary, responses: { '200': { description: Summary } } }
+    patch: { summary: Update income, responses: { '200': { description: Updated } } }
+    delete: { summary: Delete month, responses: { '200': { description: Deleted } } }
+  /budgets/{id}/copy:
+    post:
+      summary: Copy an envelope plan
+      parameters: [ { in: path, name: id, required: true, schema: { type: string, format: uuid } } ]
+      responses: { '201': { description: Copied without transactions } }
+  /budgets/{budgetId}/envelopes:
+    get: { summary: List envelopes, responses: { '200': { description: Envelopes } } }
+    post: { summary: Create envelope, responses: { '201': { description: Created } } }
+  /envelopes/{id}:
+    get: { summary: Read envelope, responses: { '200': { description: Envelope } } }
+    patch: { summary: Update envelope, responses: { '200': { description: Updated } } }
+    delete: { summary: Delete or move-and-delete envelope, responses: { '200': { description: Deleted }, '409': { description: Has transactions } } }
+  /transactions:
+    get:
+      summary: Search and paginate activity
+      parameters:
+        - { in: query, name: budgetId, schema: { type: string, format: uuid } }
+        - { in: query, name: envelopeId, schema: { type: string, format: uuid } }
+        - { in: query, name: search, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - { in: query, name: cursor, schema: { type: string }, description: ISO timestamp for date sorting or decimal amount for amount sorting }
+      responses: { '200': { description: Page of transactions } }
+    post: { summary: Create transaction, responses: { '201': { description: Created } } }
+  /transactions/{id}:
+    get: { summary: Read transaction, responses: { '200': { description: Transaction } } }
+    patch: { summary: Update transaction, responses: { '200': { description: Updated } } }
+    delete: { summary: Delete transaction, responses: { '200': { description: Deleted } } }
+  /insights:
+    get: { summary: Month insights, responses: { '200': { description: Data-driven insights } } }
+  /budgets/{id}/insights:
+    get: { summary: Budget insights, responses: { '200': { description: Data-driven insights } } }
+  /dashboard:
+    get: { summary: Dashboard summary, responses: { '200': { description: Summary } } }
+  /export:
+    get: { summary: Export authenticated user's data, responses: { '200': { description: JSON export } } }
+  /account:
+    delete: { summary: Delete account and owned data, responses: { '200': { description: Deleted } } }

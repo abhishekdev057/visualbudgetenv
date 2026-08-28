@@ -1,0 +1,6 @@
+"use client";
+import { Download, LogOut, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { apiRequest } from "@/lib/api-client";
+export function SettingsActions() { const router=useRouter(); async function logout(){await apiRequest("/api/v1/auth/logout",{method:"POST"});router.push("/sign-in");router.refresh()} async function remove(){if(!confirm("Permanently delete your Envelope account and all financial data? This cannot be undone."))return;try{await apiRequest("/api/v1/account",{method:"DELETE"});router.push("/sign-up");router.refresh()}catch(error){toast.error(error instanceof Error?error.message:"Could not delete account")}} return <div className="settings-actions"><a className="settings-row" href="/api/v1/export" download><span><Download/></span><div><strong>Export my data</strong><small>Download budgets and activity as JSON</small></div><b>›</b></a><button className="settings-row" onClick={logout}><span><LogOut/></span><div><strong>Sign out</strong><small>End this session securely</small></div><b>›</b></button><button className="settings-row danger-row" onClick={remove}><span><Trash2/></span><div><strong>Delete account</strong><small>Permanently erase your account and data</small></div><b>›</b></button></div> }
