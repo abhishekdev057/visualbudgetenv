@@ -21,10 +21,21 @@ const timestamps = {
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   ...timestamps,
 }, (table) => [uniqueIndex("users_email_unique").on(table.email)]);
+
+export const oauthAccounts = pgTable("oauth_accounts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull(),
+  providerAccountId: text("provider_account_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("oauth_accounts_provider_subject_unique").on(table.provider, table.providerAccountId),
+  uniqueIndex("oauth_accounts_provider_user_unique").on(table.provider, table.userId),
+]);
 
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),

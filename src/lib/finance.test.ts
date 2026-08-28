@@ -16,4 +16,11 @@ describe("financial calculations", () => {
     expect(envelopeStatus("100", "101").label).toBe("Over budget");
     expect(envelopeStatus("100", "100").label).toBe("Budget used");
   });
+  it("keeps very large values exact and allows a fully allocated month", () => {
+    expect(calculateSummary("9999999999999999.99", ["9999999999999999.99"], [], [])).toMatchObject({ totalAllocated: "9999999999999999.99", unallocated: "0.00", available: "9999999999999999.99" });
+  });
+  it("recalculates deterministically after edit and delete inputs", () => {
+    expect(calculateSummary("1000", ["1000"], ["250.25"], [])).toMatchObject({ totalSpent: "250.25", available: "749.75" });
+    expect(calculateSummary("1000", ["1000"], [], [])).toMatchObject({ totalSpent: "0.00", available: "1000.00" });
+  });
 });

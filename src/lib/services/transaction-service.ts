@@ -1,3 +1,4 @@
+import "server-only";
 import { and, asc, desc, eq, gt, gte, ilike, lt, lte, or } from "drizzle-orm";
 import { db } from "@/db";
 import { budgetMonths, envelopes, transactions } from "@/db/schema";
@@ -44,30 +45,45 @@ export async function deleteTransaction(userId: string, id: string) {
 }
 
 export type TransactionQuery = { budgetId?: string; envelopeId?: string; search?: string; from?: Date; to?: Date; limit?: number; cursor?: string; sort?: "newest" | "oldest" | "highest" | "lowest" };
+type CursorPayload = { value: string; id: string };
+function decodeCursor(cursor: string): CursorPayload {
+  try {
+    const value = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as CursorPayload;
+    if (!value.value || !value.id) throw new Error();
+    return value;
+  } catch {
+    throw new AppError("INVALID_CURSOR", "Pagination cursor is invalid", 422);
+  }
+}
+function encodeCursor(value: CursorPayload) { return Buffer.from(JSON.stringify(value)).toString("base64url"); }
+
 export async function listTransactions(userId: string, query: TransactionQuery = {}) {
   const limit = Math.min(Math.max(query.limit ?? 30, 1), 100);
+  const sort = query.sort ?? "newest";
   const conditions = [eq(transactions.userId, userId)];
   if (query.budgetId) conditions.push(eq(transactions.budgetMonthId, query.budgetId));
   if (query.envelopeId) conditions.push(eq(transactions.envelopeId, query.envelopeId));
   if (query.from) conditions.push(gte(transactions.transactionDate, query.from));
   if (query.to) conditions.push(lte(transactions.transactionDate, query.to));
   if (query.search) conditions.push(or(ilike(transactions.title, `%${query.search}%`), ilike(transactions.merchant, `%${query.search}%`))!);
-  if (query.cursor && query.sort === "oldest") conditions.push(gt(transactions.transactionDate, new Date(query.cursor)));
-  else if (query.cursor && query.sort === "highest") conditions.push(lt(transactions.amount, query.cursor));
-  else if (query.cursor && query.sort === "lowest") conditions.push(gt(transactions.amount, query.cursor));
-  else if (query.cursor) conditions.push(lt(transactions.transactionDate, new Date(query.cursor)));
-  const ordering = query.sort === "oldest" ? asc(transactions.transactionDate) : query.sort === "highest" ? desc(transactions.amount) : query.sort === "lowest" ? asc(transactions.amount) : desc(transactions.transactionDate);
+  if (query.cursor) {
+    const cursor = decodeCursor(query.cursor);
+    if (sort === "oldest") conditions.push(or(gt(transactions.transactionDate, new Date(cursor.value)), and(eq(transactions.transactionDate, new Date(cursor.value)), gt(transactions.id, cursor.id)))!);
+    else if (sort === "highest") conditions.push(or(lt(transactions.amount, cursor.value), and(eq(transactions.amount, cursor.value), lt(transactions.id, cursor.id)))!);
+    else if (sort === "lowest") conditions.push(or(gt(transactions.amount, cursor.value), and(eq(transactions.amount, cursor.value), gt(transactions.id, cursor.id)))!);
+    else conditions.push(or(lt(transactions.transactionDate, new Date(cursor.value)), and(eq(transactions.transactionDate, new Date(cursor.value)), lt(transactions.id, cursor.id)))!);
+  }
+  const ordering = sort === "oldest" ? [asc(transactions.transactionDate), asc(transactions.id)] : sort === "highest" ? [desc(transactions.amount), desc(transactions.id)] : sort === "lowest" ? [asc(transactions.amount), asc(transactions.id)] : [desc(transactions.transactionDate), desc(transactions.id)];
   const rows = await db.select({
     id: transactions.id, title: transactions.title, amount: transactions.amount, transactionDate: transactions.transactionDate,
     note: transactions.note, merchant: transactions.merchant, type: transactions.type, envelopeId: transactions.envelopeId,
     envelopeName: envelopes.name, envelopeIcon: envelopes.icon, envelopeAccent: envelopes.accent,
     budgetMonthId: transactions.budgetMonthId, year: budgetMonths.year, month: budgetMonths.month,
   }).from(transactions).innerJoin(envelopes, eq(envelopes.id, transactions.envelopeId)).innerJoin(budgetMonths, eq(budgetMonths.id, transactions.budgetMonthId))
-    .where(and(...conditions)).orderBy(ordering, desc(transactions.id)).limit(limit + 1);
+    .where(and(...conditions)).orderBy(...ordering).limit(limit + 1);
   const hasMore = rows.length > limit;
   const data = hasMore ? rows.slice(0, limit) : rows;
   const last = data.at(-1);
-  const nextCursor = hasMore && last ? (query.sort === "highest" || query.sort === "lowest" ? last.amount : last.transactionDate.toISOString()) : null;
+  const nextCursor = hasMore && last ? encodeCursor({ value: sort === "highest" || sort === "lowest" ? last.amount : last.transactionDate.toISOString(), id: last.id }) : null;
   return { items: data, nextCursor };
 }
-import "server-only";

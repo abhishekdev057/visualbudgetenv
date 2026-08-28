@@ -35,6 +35,8 @@ Validation failures return `422`; unauthenticated requests `401`; missing owned 
 | POST | `/auth/logout` | Revoke the current session |
 | GET | `/auth/me` | Current authenticated user |
 | POST | `/auth/change-password` | Verify current password, rotate it, and revoke other sessions |
+| GET | `/auth/google` | Start the web Google authorization-code sign-in flow |
+| POST | `/auth/google/mobile` | Exchange a verified Google ID token for a native Envelope session |
 
 Register body:
 
@@ -44,6 +46,16 @@ Register body:
 
 Login body: `{ "email": "asha@example.com", "password": "StrongPass123", "client": "web" }`.
 
+Google web sign-in redirects through `/auth/google/callback`; the server verifies state, nonce, authorization code, token signature, issuer, audience, expiry, and verified email before it creates an Envelope session. The Google client secret stays server-side.
+
+Native clients must obtain a Google-issued ID token for the configured **web** client ID, then send it only via HTTPS:
+
+```json
+{ "idToken": "google-issued-id-token" }
+```
+
+`POST /auth/google/mobile` returns `{ user, accessToken, expiresAt }`, matching the existing mobile credential contract. The backend never accepts a plain Google user ID and does not store Google access or refresh tokens.
+
 ### Profile, settings, and account
 
 | Method | Path | Purpose |
@@ -51,7 +63,9 @@ Login body: `{ "email": "asha@example.com", "password": "StrongPass123", "client
 | GET, PATCH | `/profile` | Read or update display name, avatar, locale, currency, timezone |
 | GET, PATCH | `/settings` | Read or update theme preference |
 | GET | `/export` | Download the authenticated user's structured JSON export |
-| DELETE | `/account` | Permanently delete the user and all owned data |
+| DELETE | `/account` | Permanently delete the user and all owned data after password confirmation |
+
+Account deletion body: `{ "password": "current password", "confirmation": "DELETE" }`. Google-only accounts use their active authenticated session plus `{ "confirmation": "DELETE" }`; they may add a password first in Settings.
 
 ### Budget months
 
@@ -96,7 +110,7 @@ Delete returns `ENVELOPE_HAS_TRANSACTIONS` if history exists. To preserve it, ca
 | GET, POST | `/transactions` | Paginated history or create a transaction |
 | GET, PATCH, DELETE | `/transactions/:id` | Read, edit, or delete an owned transaction |
 
-Supported list parameters: `budgetId`, `envelopeId`, `search`, `from`, `to`, `limit` (1–100), `cursor`, and `sort` (`newest`, `oldest`, `highest`, `lowest`). The response contains `items` and `nextCursor`.
+Supported list parameters: `budgetId`, `envelopeId`, `search`, `from`, `to`, `year` plus `month`, `limit` (1–100), `cursor`, and `sort` (`newest`, `oldest`, `highest`, `lowest`). The response contains `items` and `nextCursor`. Cursors are opaque and must be returned unchanged.
 
 Create expense:
 

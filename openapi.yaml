@@ -34,6 +34,21 @@ paths:
     get: { summary: Current user, responses: { '200': { description: User }, '401': { description: Unauthenticated } } }
   /auth/change-password:
     post: { summary: Change password and rotate sessions, responses: { '200': { description: Password changed }, '422': { description: Current password invalid } } }
+  /auth/google:
+    get: { security: [], summary: Start Google web authorization-code sign-in, responses: { '302': { description: Redirect to Google } } }
+  /auth/google/mobile:
+    post:
+      security: []
+      summary: Exchange a verified Google ID token for a native Envelope session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties: { idToken: { type: string } }
+      responses: { '200': { description: Mobile access token and user }, '401': { description: Invalid Google token } }
   /profile:
     get: { summary: Get profile, responses: { '200': { description: Profile } } }
     patch: { summary: Update profile, responses: { '200': { description: Updated } } }
@@ -75,7 +90,10 @@ paths:
         - { in: query, name: envelopeId, schema: { type: string, format: uuid } }
         - { in: query, name: search, schema: { type: string } }
         - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
-        - { in: query, name: cursor, schema: { type: string }, description: ISO timestamp for date sorting or decimal amount for amount sorting }
+        - { in: query, name: cursor, schema: { type: string }, description: Opaque cursor returned by the previous page }
+        - { in: query, name: sort, schema: { type: string, enum: [newest, oldest, highest, lowest] } }
+        - { in: query, name: year, schema: { type: integer } }
+        - { in: query, name: month, schema: { type: integer, minimum: 1, maximum: 12 } }
       responses: { '200': { description: Page of transactions } }
     post: { summary: Create transaction, responses: { '201': { description: Created } } }
   /transactions/{id}:
@@ -91,4 +109,16 @@ paths:
   /export:
     get: { summary: Export authenticated user's data, responses: { '200': { description: JSON export } } }
   /account:
-    delete: { summary: Delete account and owned data, responses: { '200': { description: Deleted } } }
+    delete:
+      summary: Delete account and owned data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password, confirmation]
+              properties:
+                password: { type: string, minLength: 8 }
+                confirmation: { type: string, const: DELETE }
+      responses: { '200': { description: Deleted }, '401': { description: Current password invalid }, '422': { description: Confirmation invalid } }

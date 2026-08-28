@@ -11,9 +11,10 @@ export function created<T>(data: T) {
 }
 
 export function apiError(error: unknown) {
-  if (error instanceof ZodError) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Please check the submitted values", details: error.flatten() } }, { status: 422 });
+  if (error instanceof ZodError) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: error.issues[0]?.message ?? "Please check the submitted values", details: error.flatten() } }, { status: 422 });
   if (error instanceof AppError) return NextResponse.json({ success: false, error: { code: error.code, message: error.message, ...(error.details ? { details: error.details } : {}) } }, { status: error.status });
-  if (process.env.NODE_ENV !== "test") console.error("Request failed", error instanceof Error ? error.name : "UnknownError");
+  if (process.env.NODE_ENV === "development") console.error("Request failed", error);
+  else if (process.env.NODE_ENV !== "test") console.error("Request failed", error instanceof Error ? error.name : "UnknownError");
   return NextResponse.json({ success: false, error: { code: "INTERNAL_ERROR", message: "Something went wrong" } }, { status: 500 });
 }
 

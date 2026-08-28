@@ -1,12 +1,12 @@
 import "server-only";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
 
 function createDatabase() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not configured");
-  return drizzle(neon(url), { schema });
+  return drizzle(new Pool({ connectionString: url }), { schema });
 }
 
 export type Database = ReturnType<typeof createDatabase>;

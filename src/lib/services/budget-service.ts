@@ -1,3 +1,4 @@
+import "server-only";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { budgetMonths, envelopes, transactions } from "@/db/schema";
@@ -79,4 +80,3 @@ export async function getBudgetSummary(userId: string, id: string, database = db
   const summary = calculateSummary(budget.income, detail.map((item) => item.allocatedAmount), detail.map((item) => item.spent), detail.filter((item) => item.type === "savings").map((item) => item.allocatedAmount));
   return { ...budget, ...summary, allocationUsed: percentage(summary.totalAllocated, summary.income), envelopes: detail };
 }
-import "server-only";

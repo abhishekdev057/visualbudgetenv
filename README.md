@@ -6,7 +6,7 @@ Envelope is a production-oriented, dark-first visual budgeting application. It g
 
 ## What is included
 
-- Secure email/password accounts with bcrypt-hashed passwords
+- Secure email/password accounts plus Google OpenID Connect; provider identities are stored by immutable Google subject, never email alone
 - Opaque, revocable sessions: `HttpOnly` cookies for web and bearer tokens for mobile clients
 - First-run onboarding with income, template/custom envelopes, and over-allocation protection
 - Month-specific budgets and copy-forward plans (never transaction history)
@@ -42,8 +42,13 @@ Open `http://localhost:3000`. New accounts begin with no budget or transaction r
 |---|---:|---|
 | `DATABASE_URL` | yes | Neon pooled application connection |
 | `DATABASE_URL_UNPOOLED` | recommended | Direct connection used by migrations; falls back to `DATABASE_URL` |
+| `GOOGLE_CLIENT_ID` | for Google sign-in | Google OAuth web client ID; also the ID-token audience for native apps |
+| `GOOGLE_CLIENT_SECRET` | for Google web sign-in | Server-only OAuth client secret; never expose to mobile or `NEXT_PUBLIC_*` |
+| `APP_URL` | production Google sign-in | Canonical public app URL, for example `https://budget.example.com` |
 
-Never expose these as `NEXT_PUBLIC_*`, commit `.env*`, or place credentials in `vercel.json`.
+Never expose secrets as `NEXT_PUBLIC_*`, commit `.env*`, or place credentials in `vercel.json`.
+
+For Google web sign-in, add `${APP_URL}/api/v1/auth/google/callback` as an exact Authorized redirect URI in Google Cloud. Native Android/iOS apps use their respective Google SDKs to obtain an ID token for this web client ID, then POST it to `/api/v1/auth/google/mobile`; no client secret belongs in a mobile app.
 
 ## Database
 

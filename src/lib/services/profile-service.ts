@@ -1,3 +1,4 @@
+import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { budgetMonths, envelopes, transactions, userProfiles, userSettings, users } from "@/db/schema";
@@ -29,4 +30,3 @@ export async function exportData(userId: string) {
 export async function deleteAccount(userId: string) {
   await db.delete(users).where(eq(users.id, userId));
 }
-import "server-only";

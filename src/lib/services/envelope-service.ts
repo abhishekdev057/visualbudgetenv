@@ -1,3 +1,4 @@
+import "server-only";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { envelopes, transactions } from "@/db/schema";
@@ -36,9 +37,14 @@ export async function createEnvelope(userId: string, budgetMonthId: string, inpu
 export async function updateEnvelope(userId: string, id: string, input: Partial<EnvelopeInput>) {
   const current = await findEnvelope(userId, id);
   if (input.allocatedAmount !== undefined) await validateAllocation(userId, current.budgetMonthId, input.allocatedAmount, id);
-  const [item] = await db.update(envelopes).set({ ...input, ...(input.allocatedAmount !== undefined ? { allocatedAmount: moneyString(input.allocatedAmount) } : {}), updatedAt: new Date() })
-    .where(and(eq(envelopes.id, id), eq(envelopes.userId, userId))).returning();
-  return item;
+  try {
+    const [item] = await db.update(envelopes).set({ ...input, ...(input.allocatedAmount !== undefined ? { allocatedAmount: moneyString(input.allocatedAmount) } : {}), updatedAt: new Date() })
+      .where(and(eq(envelopes.id, id), eq(envelopes.userId, userId))).returning();
+    return item;
+  } catch (error) {
+    if (error instanceof Error && (error.message.includes("envelopes_budget_name_unique") || error.message.includes("duplicate key"))) throw new AppError("DUPLICATE_ENVELOPE", "An envelope with this name already exists", 409);
+    throw error;
+  }
 }
 
 export async function deleteEnvelope(userId: string, id: string, moveToEnvelopeId?: string) {
@@ -48,10 +54,10 @@ export async function deleteEnvelope(userId: string, id: string, moveToEnvelopeI
   if (moveToEnvelopeId) {
     const target = await findEnvelope(userId, moveToEnvelopeId);
     if (target.budgetMonthId !== current.budgetMonthId || target.id === current.id) throw new AppError("INVALID_MOVE_TARGET", "Choose another envelope from the same month", 422);
+    if (target.type !== current.type) throw new AppError("INVALID_MOVE_TARGET", "Move history to an envelope of the same type", 422);
     await db.transaction(async (tx) => {
       await tx.update(transactions).set({ envelopeId: target.id, updatedAt: new Date() }).where(and(eq(transactions.userId, userId), eq(transactions.envelopeId, id)));
       await tx.delete(envelopes).where(and(eq(envelopes.userId, userId), eq(envelopes.id, id)));
     });
   } else await db.delete(envelopes).where(and(eq(envelopes.userId, userId), eq(envelopes.id, id)));
 }
-import "server-only";

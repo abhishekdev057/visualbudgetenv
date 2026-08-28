@@ -1,5 +1,6 @@
+import "server-only";
 import { compare, hash } from "bcryptjs";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
@@ -28,7 +29,7 @@ export function attachSessionCookie(response: NextResponse, token: string, expir
 
 export async function verifyCredentials(email: string, password: string) {
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-  if (!user || !(await compare(password, user.passwordHash))) throw new AppError("INVALID_CREDENTIALS", "Email or password is incorrect", 401);
+  if (!user?.passwordHash || !(await compare(password, user.passwordHash))) throw new AppError("INVALID_CREDENTIALS", "Email or password is incorrect", 401);
   return user;
 }
 
@@ -36,7 +37,7 @@ export async function resolveUser(token?: string | null) {
   if (!token) return null;
   const [row] = await db.select({
     id: users.id, email: users.email, displayName: userProfiles.displayName, avatarUrl: userProfiles.avatarUrl,
-    currency: userProfiles.currency, locale: userProfiles.locale, timezone: userProfiles.timezone,
+    currency: userProfiles.currency, locale: userProfiles.locale, timezone: userProfiles.timezone, hasPassword: sql<boolean>`${users.passwordHash} is not null`,
   }).from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .innerJoin(userProfiles, eq(userProfiles.userId, users.id))
@@ -80,4 +81,3 @@ export async function assertTrustedOrigin(request: NextRequest) {
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   if (!host || new URL(origin).host !== host) throw new AppError("INVALID_ORIGIN", "Request origin is not allowed", 403);
 }
-import "server-only";
