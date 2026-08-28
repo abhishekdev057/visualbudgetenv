@@ -30,14 +30,16 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 ## Current handoff record
 
 **Owner:** Codex  
-**Status:** Ready for a real-provider smoke test and release.
+**Status:** Li-Khata brand pass is complete; ready for a real-provider OAuth smoke test and release.
 
 ### Completed in this handoff
 
 - Live Neon schema migration and server transaction-capable database driver.
 - Production audit hardening: exact money validation, ownership controls, pagination, safe destructive dialogs, stronger account deletion, server-driven insights, responsive UI polish, and acceptance coverage.
 - Google OAuth foundation: provider identity table, secure web authorization-code callback, verified native ID-token exchange endpoint, and Google sign-in UI.
-- Verification completed: database migration, unit tests, TypeScript, lint, production build, mobile/desktop visual QA, and the two-user API acceptance suite.
+- Li-Khata identity is now implemented across product metadata, sign-in, desktop navigation, profile language, onboarding visuals, cards, allocation, and the dashboard hero. The canonical supplied asset is `public/brand/li-khata-logo.png`.
+- Brand system: indigo is the trusted ledger foundation, emerald signals growth/progress and active navigation, and amber is reserved for primary action/reward. The dashboard hero uses a restrained logo-derived envelope geometry; avoid unrelated decorative graphics.
+- Verification completed: database migration, unit tests, TypeScript, lint, production build, mobile/desktop visual QA, and the two-user API acceptance suite. The current brand pass additionally passed `npm run typecheck`, `npm run lint`, `npm run build`, `git diff --check`, desktop/mobile sign-in visual checks, and a clean browser-console check.
 
 ### Next agent actions
 
@@ -45,6 +47,7 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 2. In Google Cloud, register the exact callback: `APP_URL/api/v1/auth/google/callback`.
 3. Test a real Google web sign-in and a native ID-token POST to `/api/v1/auth/google/mobile` after platform client IDs are added.
 4. If changes are needed, run the release checklist again before the next commit/push.
+5. Preserve the Li-Khata palette hierarchy and reuse the canonical brand asset rather than inventing replacement logos or unrelated visual motifs.
 
 ### Known setup requirements
 
