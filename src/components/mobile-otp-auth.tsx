@@ -12,6 +12,7 @@ declare global {
   interface Window {
     initSendOTP?: (configuration: Record<string, unknown>) => void;
     sendOtp?: (identifier: string, success?: (data: WidgetReply) => void, failure?: (error: unknown) => void) => void;
+    retryOtp?: (channel: string | null, success?: (data: WidgetReply) => void, failure?: (error: unknown) => void, requestId?: string) => void;
     verifyOtp?: (otp: string | number, success?: (data: WidgetReply) => void, failure?: (error: unknown) => void, requestId?: string) => void;
   }
 }
@@ -55,9 +56,9 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
 
   const initialize = useCallback(() => {
     if (!widgetConfig || !window.initSendOTP) return;
-    window.initSendOTP({ widgetId: widgetConfig.widgetId, tokenAuth: widgetConfig.tokenAuth, exposeMethods: true, success: finish, failure: (reason: unknown) => { setPending(false); setError(messageFrom(reason, "OTP verification failed. Please try again.")); } });
+    window.initSendOTP({ widgetId: widgetConfig.widgetId, tokenAuth: widgetConfig.tokenAuth, exposeMethods: true });
     setReady(true);
-  }, [finish, widgetConfig]);
+  }, [widgetConfig]);
 
   useEffect(() => { let active = true; fetch("/api/v1/auth/msg91", { cache: "no-store" }).then(async (response) => {
     const payload = await response.json() as { success?: boolean; data?: WidgetConfig };
@@ -72,6 +73,12 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
     window.sendOtp(`91${digits}`, (reply) => { setRequestId(readRequestId(reply)); setStep("otp"); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not send an OTP right now.")); });
   };
 
+  const resendOtp = () => {
+    if (!requestId || !window.retryOtp) { sendOtp(); return; }
+    setPending(true); setError("");
+    window.retryOtp(null, (reply) => { setRequestId(readRequestId(reply) ?? requestId); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not resend an OTP right now.")); }, requestId);
+  };
+
   const verifyOtp = () => {
     if (!/^\d{4,8}$/.test(otp)) { setError("Enter the OTP sent to your mobile."); return; }
     if (!window.verifyOtp) { setError("Mobile sign-in is still loading. Please try again in a moment."); return; }
@@ -82,8 +89,8 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
   return <section className="otp-auth" aria-label="Mobile OTP sign-in">
     {widgetConfig && <Script src="https://verify.msg91.com/otp-provider.js" strategy="afterInteractive" onLoad={initialize} onError={() => setFallback(true)} />}
     {widgetConfig && fallback && <Script src="https://verify.phone91.com/otp-provider.js" strategy="afterInteractive" onLoad={initialize} />}
-    <div className="otp-auth-heading"><span className="auth-provider-icon"><MessageSquareText /></span><div><strong>Continue with mobile</strong><small>{step === "phone" ? "A secure OTP confirms it’s really you." : `Code sent to +91 ${phone.replace(/\D/g, "")}`}</small></div><span className="otp-secure"><ShieldCheck /> Secure</span></div>
-    {step === "phone" ? <div className="otp-field-row"><label><span className="sr-only">Indian mobile number</span><b>+91</b><input value={phone} onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" autoComplete="tel-national" placeholder="Mobile number" aria-label="Indian mobile number" /></label><button type="button" className="otp-action" onClick={sendOtp} disabled={pending || !ready}>{pending ? <LoaderCircle className="spin" /> : <>Send code <ArrowRight /></>}</button></div> : <div className="otp-verify-row"><input value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" placeholder="Enter OTP" aria-label="One-time password" autoFocus/><button type="button" className="otp-action" onClick={verifyOtp} disabled={pending}>{pending ? <LoaderCircle className="spin" /> : <>Verify <ShieldCheck /></>}</button><button type="button" className="otp-resend" onClick={sendOtp} disabled={pending}><RefreshCw /> Resend</button></div>}
+    <div className="otp-auth-heading"><span className="auth-provider-icon"><MessageSquareText /></span><div><strong>Continue with mobile</strong><small>{step === "phone" ? "A secure OTP confirms it’s really you." : `Code requested for +91 ${phone.replace(/\D/g, "")}. Delivery can take a moment.`}</small></div><span className="otp-secure"><ShieldCheck /> Secure</span></div>
+    {step === "phone" ? <div className="otp-field-row"><label><span className="sr-only">Indian mobile number</span><b>+91</b><input value={phone} onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" autoComplete="tel-national" placeholder="Mobile number" aria-label="Indian mobile number" /></label><button type="button" className="otp-action" onClick={sendOtp} disabled={pending || !ready}>{pending ? <LoaderCircle className="spin" /> : <>Send code <ArrowRight /></>}</button></div> : <div className="otp-verify-row"><input value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" placeholder="Enter OTP" aria-label="One-time password" autoFocus/><button type="button" className="otp-action" onClick={verifyOtp} disabled={pending}>{pending ? <LoaderCircle className="spin" /> : <>Verify <ShieldCheck /></>}</button><button type="button" className="otp-resend" onClick={resendOtp} disabled={pending}><RefreshCw /> Resend</button></div>}
     {error && <p className="otp-error" role="alert">{error}</p>}
     <p className="otp-note">By continuing, you agree to receive a one-time verification message. {signup ? "Your Li-Khata account will be created after verification." : ""}</p>
   </section>;
