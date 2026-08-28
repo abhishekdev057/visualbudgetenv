@@ -3,7 +3,7 @@
 import { ArrowRight, LoaderCircle, MessageSquareText, RefreshCw, ShieldCheck } from "lucide-react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api-client";
 
 type WidgetReply = string | { [key: string]: unknown };
@@ -19,18 +19,29 @@ declare global {
 
 type WidgetConfig = { widgetId: string; tokenAuth: string };
 
-function readAccessToken(reply: WidgetReply): string | null {
-  if (typeof reply === "string") return reply.length > 20 ? reply : null;
-  const nested = typeof reply.data === "object" && reply.data ? reply.data as Record<string, unknown> : null;
-  const token = reply["access-token"] ?? reply.accessToken ?? reply.token ?? nested?.["access-token"] ?? nested?.accessToken ?? nested?.token;
-  return typeof token === "string" && token.length > 20 ? token : null;
+function readAccessToken(value: unknown): string | null {
+  if (typeof value === "string") return value.split(".").length === 3 ? value : null;
+  if (!value || typeof value !== "object") return null;
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    const normalizedKey = key.toLowerCase().replace(/[-_]/g, "");
+    const isWidgetConfigToken = ["tokenauth", "widgettoken", "authtoken"].includes(normalizedKey);
+    const isAccessTokenKey = ["accesstoken", "verifiedtoken", "verificationtoken"].includes(normalizedKey);
+    if (typeof nested === "string" && !isWidgetConfigToken && (isAccessTokenKey || nested.split(".").length === 3)) return nested;
+    const token = readAccessToken(nested);
+    if (token) return token;
+  }
+  return null;
 }
 
-function readRequestId(reply: WidgetReply) {
-  if (typeof reply === "string") return undefined;
-  const nested = typeof reply.data === "object" && reply.data ? reply.data as Record<string, unknown> : null;
-  const id = reply.reqId ?? reply.requestId ?? nested?.reqId ?? nested?.requestId;
-  return typeof id === "string" ? id : undefined;
+function readRequestId(value: unknown): string | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    const normalizedKey = key.toLowerCase().replace(/[-_]/g, "");
+    if (typeof nested === "string" && ["reqid", "requestid"].includes(normalizedKey)) return nested;
+    const requestId = readRequestId(nested);
+    if (requestId) return requestId;
+  }
+  return undefined;
 }
 
 function messageFrom(error: unknown, fallback: string) {
@@ -41,12 +52,14 @@ function messageFrom(error: unknown, fallback: string) {
 
 export function MobileOtpAuth({ signup }: { signup: boolean }) {
   const router = useRouter();
+  const widgetReplyRef = useRef<WidgetReply | null>(null);
   const [ready, setReady] = useState(false); const [fallback, setFallback] = useState(false); const [widgetConfig, setWidgetConfig] = useState<WidgetConfig | null>(null);
   const [phone, setPhone] = useState(""); const [otp, setOtp] = useState(""); const [requestId, setRequestId] = useState<string>();
   const [step, setStep] = useState<"phone" | "otp">("phone"); const [pending, setPending] = useState(false); const [error, setError] = useState("");
 
   const finish = useCallback(async (reply: WidgetReply) => {
-    const accessToken = readAccessToken(reply);
+    const accessToken = readAccessToken(reply) ?? readAccessToken(widgetReplyRef.current);
+    widgetReplyRef.current = reply;
     if (!accessToken) { setPending(false); setError("Verification was incomplete. Please request a fresh OTP."); return; }
     try {
       await apiRequest("/api/v1/auth/msg91", { method: "POST", body: JSON.stringify({ accessToken, client: "web" }) });
@@ -54,11 +67,13 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
     } catch (reason) { setPending(false); setError(messageFrom(reason, "We could not sign you in with that OTP.")); }
   }, [router]);
 
+  const rememberWidgetReply = useCallback((reply: WidgetReply) => { widgetReplyRef.current = reply; }, []);
+
   const initialize = useCallback(() => {
     if (!widgetConfig || !window.initSendOTP) return;
-    window.initSendOTP({ widgetId: widgetConfig.widgetId, tokenAuth: widgetConfig.tokenAuth, exposeMethods: true });
+    window.initSendOTP({ widgetId: widgetConfig.widgetId, tokenAuth: widgetConfig.tokenAuth, exposeMethods: true, success: rememberWidgetReply, failure: () => {} });
     setReady(true);
-  }, [widgetConfig]);
+  }, [rememberWidgetReply, widgetConfig]);
 
   useEffect(() => { let active = true; fetch("/api/v1/auth/msg91", { cache: "no-store" }).then(async (response) => {
     const payload = await response.json() as { success?: boolean; data?: WidgetConfig };
@@ -70,13 +85,13 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
     if (digits.length !== 10) { setError("Enter a valid 10-digit Indian mobile number."); return; }
     if (!ready || !window.sendOtp) { setError("Mobile sign-in is still loading. Please try again in a moment."); return; }
     setPending(true); setError("");
-    window.sendOtp(`91${digits}`, (reply) => { setRequestId(readRequestId(reply)); setStep("otp"); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not send an OTP right now.")); });
+    window.sendOtp(`91${digits}`, (reply) => { rememberWidgetReply(reply); setRequestId(readRequestId(reply)); setStep("otp"); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not send an OTP right now.")); });
   };
 
   const resendOtp = () => {
     if (!requestId || !window.retryOtp) { sendOtp(); return; }
     setPending(true); setError("");
-    window.retryOtp(null, (reply) => { setRequestId(readRequestId(reply) ?? requestId); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not resend an OTP right now.")); }, requestId);
+    window.retryOtp(null, (reply) => { rememberWidgetReply(reply); setRequestId(readRequestId(reply) ?? requestId); setPending(false); }, (reason) => { setPending(false); setError(messageFrom(reason, "We could not resend an OTP right now.")); }, requestId);
   };
 
   const verifyOtp = () => {
