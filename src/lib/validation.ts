@@ -24,6 +24,10 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
   client: z.enum(["web", "mobile"]).default("web"),
 });
+export const msg91LoginSchema = z.object({
+  accessToken: z.string().trim().min(20).max(10000),
+  client: z.enum(["web", "mobile"]).default("web"),
+});
 export const envelopeInputSchema = z.object({
   name: z.string().trim().min(1).max(60), icon: z.string().min(1).max(40).default("WalletCards"),
   accent: z.enum(["amber", "violet", "cyan", "rose", "emerald", "blue"]).default("amber"),

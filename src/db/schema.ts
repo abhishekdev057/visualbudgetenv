@@ -20,11 +20,13 @@ const timestamps = {
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  email: text("email").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  phoneVerifiedAt: timestamp("phone_verified_at", { withTimezone: true }),
   passwordHash: text("password_hash"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   ...timestamps,
-}, (table) => [uniqueIndex("users_email_unique").on(table.email)]);
+}, (table) => [uniqueIndex("users_email_unique").on(table.email), uniqueIndex("users_phone_unique").on(table.phone)]);
 
 export const oauthAccounts = pgTable("oauth_accounts", {
   id: uuid("id").defaultRandom().primaryKey(),

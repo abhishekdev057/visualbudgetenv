@@ -36,7 +36,7 @@ export async function verifyCredentials(email: string, password: string) {
 export async function resolveUser(token?: string | null) {
   if (!token) return null;
   const [row] = await db.select({
-    id: users.id, email: users.email, displayName: userProfiles.displayName, avatarUrl: userProfiles.avatarUrl,
+    id: users.id, email: users.email, phone: users.phone, displayName: userProfiles.displayName, avatarUrl: userProfiles.avatarUrl,
     currency: userProfiles.currency, locale: userProfiles.locale, timezone: userProfiles.timezone, hasPassword: sql<boolean>`${users.passwordHash} is not null`,
   }).from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
