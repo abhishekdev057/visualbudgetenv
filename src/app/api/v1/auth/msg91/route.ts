@@ -1,8 +1,18 @@
 import type { NextRequest } from "next/server";
 import { apiError, ok, readJson } from "@/lib/api-response";
 import { assertTrustedOrigin, attachSessionCookie, createSession } from "@/lib/auth";
+import { AppError } from "@/lib/errors";
 import { findOrCreatePhoneUser, verifyMsg91AccessToken } from "@/lib/services/phone-auth-service";
 import { msg91LoginSchema } from "@/lib/validation";
+
+export async function GET() {
+  const widgetId = process.env.MSG91_WIDGET_ID;
+  const tokenAuth = process.env.MSG91_WIDGET_TOKEN;
+  if (!widgetId || !tokenAuth) return apiError(new AppError("MSG91_NOT_CONFIGURED", "Mobile sign-in is not configured yet.", 503));
+  const response = ok({ widgetId, tokenAuth });
+  response.headers.set("Cache-Control", "no-store, max-age=0");
+  return response;
+}
 
 export async function POST(request: NextRequest) {
   try {

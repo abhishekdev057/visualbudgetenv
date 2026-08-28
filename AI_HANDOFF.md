@@ -56,4 +56,4 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and production `APP_URL` are required for web OAuth.
 - Native clients must request an ID token for the backend's Google web client ID and send it to the mobile endpoint over HTTPS.
-- MSG91 requires `MSG91_AUTH_KEY`, `NEXT_PUBLIC_MSG91_WIDGET_ID`, and `NEXT_PUBLIC_MSG91_WIDGET_TOKEN` in the deployment environment. The public widget token initializes the client widget; the auth key is server-only and validates the returned access token at `/api/v1/auth/msg91`.
+- MSG91 requires `MSG91_AUTH_KEY`, `MSG91_WIDGET_ID`, and `MSG91_WIDGET_TOKEN` in the deployment environment. The browser retrieves the widget ID/token at runtime from `GET /api/v1/auth/msg91`; the auth key is server-only and validates the returned access token at `POST /api/v1/auth/msg91`.
