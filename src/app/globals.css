@@ -1303,3 +1303,47 @@ body::after {
   .auth-workspace-card { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
 
+
+/* ==========================================================================
+   14 · Reclaim the last white surfaces from the dead light theme
+   .empty-state / .connection-card / .onboarding-hero / OTP inputs were
+   still painted #fff — invisible content and white-on-white fields.
+   ========================================================================== */
+
+.empty-state {
+  background: linear-gradient(150deg, rgba(23, 28, 55, .5), rgba(13, 16, 36, .58));
+  border-color: rgba(156, 166, 255, .14);
+}
+.empty-state.compact { background: linear-gradient(150deg, rgba(23, 28, 55, .42), rgba(13, 16, 36, .5)); }
+
+.connection-card {
+  background: linear-gradient(150deg, rgba(24, 30, 68, .95), rgba(13, 17, 39, .97));
+  border-color: var(--line);
+}
+.connection-card.is-complete { border-color: rgba(0, 203, 145, .32); }
+.connection-card p { color: #9aa5c4; }
+.connection-confirmed { background: rgba(0, 203, 145, .1); color: #c7ffec; }
+
+.onboarding-hero {
+  background:
+    radial-gradient(500px 240px at 88% 0, rgba(0, 203, 145, .17), transparent 70%),
+    linear-gradient(145deg, #182052, #0f1433);
+  border-color: rgba(103, 120, 238, .25);
+}
+.onboarding-hero p { color: #a9b3d2; }
+
+/* OTP: the phone-number field wrapper was white with white text */
+.otp-field-row label,
+.otp-verify-row input {
+  background: rgba(6, 9, 25, .5) !important;
+  border-color: rgba(143, 157, 244, .24) !important;
+}
+.otp-field-row input,
+.otp-verify-row input { color: var(--text) !important; }
+.otp-field-row input::placeholder,
+.otp-verify-row input::placeholder { color: #7c86ab; }
+
+/* small residual label dimness */
+.balance-line button { color: var(--muted); }
+.hero-metrics span, .envelope-money span, .envelope-foot,
+.status-line, .allocation-legend { color: #8b95b8; }
