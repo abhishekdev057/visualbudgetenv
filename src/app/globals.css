@@ -1030,3 +1030,137 @@ body::after {
   .page, .envelope-grid > * { animation: none; }
 }
 
+/* ==========================================================================
+   12 · Auth screens speak the product's indigo language
+   Sign-in / sign-up now use the exact tokens, borders, glass and accents
+   of the inner app: #00cb91 emerald, #f4a61d amber action, #7368e7 violet,
+   var(--line) hairlines, var(--lift-*) elevation.
+   ========================================================================== */
+
+.auth-experience-v2 { background: var(--bg); color: var(--text); }
+
+.auth-hero-section {
+  background: radial-gradient(1020px 720px at 16% 18%, #141a44 0%, #0a0e24 55%, var(--bg) 100%);
+  border-right: 1px solid var(--line);
+}
+.auth-mesh-bg {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0, 203, 145, .16), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(115, 104, 231, .18), transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(244, 166, 29, .1), transparent 50%);
+}
+.auth-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(156, 166, 255, .045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(156, 166, 255, .045) 1px, transparent 1px);
+}
+.orb-primary { background: rgba(115, 104, 231, .2); }
+.orb-emerald { background: rgba(0, 203, 145, .16); }
+.orb-saffron { background: rgba(244, 166, 29, .13); }
+
+.auth-badge-pill { background: rgba(156, 166, 255, .07); border: 1px solid var(--line); color: var(--success); }
+.auth-badge-pill .icon-sparkle { color: var(--gold); }
+.auth-kicker-v2 { color: #4ce5b7; }
+.kicker-dot { background: var(--success); box-shadow: 0 0 12px rgba(0, 203, 145, .8); }
+.auth-hero-title { font-family: var(--font-display), var(--font-heading), sans-serif; color: var(--text); }
+.gradient-rupee {
+  background-image: linear-gradient(135deg, #00cb91 0%, #4ce5b7 48%, #f4a61d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.auth-hero-subtitle { color: var(--muted); }
+
+.stack-card {
+  background: linear-gradient(150deg, rgba(23, 28, 55, .92), rgba(13, 16, 36, .95));
+  border: 1px solid var(--line);
+  box-shadow: var(--lift-3), var(--rim);
+}
+.stack-card.card-top {
+  background: radial-gradient(280px 150px at 0 0, rgba(0, 203, 145, .12), transparent 66%), linear-gradient(150deg, rgba(27, 33, 66, .95), rgba(14, 18, 40, .96));
+  border-color: rgba(0, 203, 145, .32);
+}
+.stack-card.card-middle { border-color: rgba(115, 104, 231, .3); }
+.icon-emerald { background: rgba(0, 203, 145, .14); color: #4ce5b7; }
+.icon-violet { background: rgba(115, 104, 231, .16); color: #a99cff; }
+.icon-indigo { background: rgba(101, 112, 236, .16); color: #9aa6ff; }
+.stack-card-info strong { color: var(--text); }
+.stack-card-info span { color: var(--muted); }
+.badge-emerald { background: rgba(0, 203, 145, .14); color: #4ce5b7; }
+.badge-violet { background: rgba(115, 104, 231, .16); color: #b9aefc; }
+.stack-card-amount strong { color: var(--text); }
+.stack-card-amount small { color: var(--muted); }
+.stack-progress-bar { background: rgba(171, 181, 255, .13); }
+.fill-emerald { background: linear-gradient(90deg, #00cb91, #32d0c2); }
+.stack-floating-pill { background: rgba(244, 166, 29, .14); border: 1px solid rgba(244, 166, 29, .32); color: var(--gold-soft); }
+.trust-item { color: #c7cef0; }
+.trust-item svg { color: var(--success); }
+.trust-divider { background: rgba(156, 166, 255, .25); }
+.av-1 { background: var(--blue); }
+.av-2 { background: var(--success); }
+.av-3 { background: var(--gold); }
+.avatar-pill { border-color: var(--bg); }
+.stars { color: var(--gold); }
+.rating-copy span { color: var(--muted); }
+
+.auth-workspace-v2 { background: var(--bg); }
+@media (min-width: 961px) {
+  .auth-workspace-v2 { background: radial-gradient(720px 520px at 72% 22%, rgba(38, 46, 104, .5), transparent 70%), #080b1a; }
+}
+.auth-mode-tabs { background: var(--surface-2); border: 1px solid var(--line); }
+.auth-tab { color: var(--muted); }
+.auth-tab:hover { color: var(--text); }
+.auth-tab.active { background: linear-gradient(135deg, #00cb91, #16b89f); color: #04231c; box-shadow: 0 6px 18px rgba(0, 203, 145, .28); }
+.auth-back-btn { color: var(--muted); }
+.auth-back-btn:hover { color: var(--success); }
+.auth-eyebrow-tag { color: var(--success); }
+.auth-main-title { font-family: var(--font-display), var(--font-heading), sans-serif; color: var(--text); }
+.auth-lead-copy { color: var(--muted); }
+
+.auth-card-btn {
+  background: linear-gradient(150deg, rgba(23, 28, 55, .8), rgba(14, 18, 40, .85));
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.auth-card-btn:hover {
+  border-color: rgba(0, 203, 145, .45);
+  background: linear-gradient(150deg, rgba(28, 34, 66, .9), rgba(16, 20, 44, .92));
+  box-shadow: var(--lift-2);
+}
+.auth-card-btn:hover .btn-arrow { color: var(--success); }
+.btn-text-content strong { color: var(--text); }
+.btn-text-content small { color: var(--muted); }
+.btn-arrow { color: #6a74a0; }
+.auth-privacy-note { color: #7a84a6; }
+.auth-privacy-note svg { color: var(--success); }
+
+.input-group label { color: #a9b1d0; }
+.input-wrapper input {
+  background: rgba(8, 11, 26, .72);
+  border: 1px solid rgba(156, 166, 255, .18);
+  color: var(--text);
+}
+.input-wrapper input:focus {
+  border-color: rgba(0, 203, 145, .7);
+  background: rgba(8, 11, 26, .9);
+  box-shadow: 0 0 0 4px rgba(0, 203, 145, .12);
+}
+.input-icon { color: #6a74a0; }
+.password-toggle { color: #6a74a0; }
+.password-toggle:hover { color: var(--text); }
+
+.auth-submit-btn {
+  background: linear-gradient(135deg, #ffd873, #f4a61d 62%, #e2900f);
+  color: #1b1420;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 10px 28px rgba(244, 166, 29, .28), 0 2px 6px rgba(0, 0, 0, .3);
+}
+.auth-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffe08a, #ffb43a 62%, #f09a18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 16px 40px rgba(244, 166, 29, .4), 0 3px 10px rgba(0, 0, 0, .3);
+}
+.auth-footer-note { color: #7a84a6; }
+.auth-footer-note svg { color: var(--success); }
+.auth-bottom-switch { border-top: 1px solid var(--line); color: var(--muted); }
+.switch-link { color: #5de8c3; }
+.form-alert.alert-error { background: rgba(233, 117, 117, .1); border: 1px solid rgba(233, 117, 117, .24); color: #ffc4c4; }
+
