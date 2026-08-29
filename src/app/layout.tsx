@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Manrope } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const displayFont = Manrope({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 export const metadata: Metadata = { title: { default: "Li-Khata — हर रुपये की सही जगह", template: "%s · Li-Khata" }, description: "Visual budgeting for clearer monthly money decisions.", applicationName: "Li-Khata" };
-export const viewport = { themeColor: "#101247", colorScheme: "dark", width: "device-width", initialScale: 1 };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en" className={geist.variable}><body>{children}<Toaster theme="dark" position="top-center" richColors /></body></html>; }
+export const viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1 };
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en" className={`${bodyFont.variable} ${displayFont.variable}`}><body>{children}<Toaster theme="light" position="top-center" richColors /></body></html>; }
