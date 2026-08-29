@@ -30,7 +30,7 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 ## Current handoff record
 
 **Owner:** Codex  
-**Status:** Li-Khata product finish and MSG91 mobile OTP integration are complete; ready for a consented real-device OTP smoke test and release.
+**Status:** Li-Khata product finish, linked-contact onboarding, and MSG91 mobile OTP integration are complete; ready for a consented real-device OTP smoke test and release.
 
 ### Completed in this handoff
 
@@ -38,6 +38,9 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 - Production audit hardening: exact money validation, ownership controls, pagination, safe destructive dialogs, stronger account deletion, server-driven insights, responsive UI polish, and acceptance coverage.
 - Google OAuth foundation: provider identity table, secure web authorization-code callback, verified native ID-token exchange endpoint, and Google sign-in UI.
 - MSG91 custom web OTP flow: branded Indian mobile and inline OTP UI, MSG91 widget loader with a narrow CSP allow-list, and server-side verification of each widget access token before a session is created. Phone-only users are persisted with a verified phone number; email/password and Google flows remain unchanged.
+- Linked identity onboarding: Google OAuth now supports an authenticated `intent=link` flow, mobile OTP preserves the current session while linking a phone, and every sign-in method lands on `/onboarding/verify` until both contacts are verified. Google is the email proof; the product never labels a credentials email as verified without a provider-backed check.
+- Auth redesign: the first screen is a deliberate method chooser (mobile, Google, or credentials), with direct Google OAuth, progressive forms, responsive Li-Khata motion, and a muted Coverr background clip at `public/auth/budget-planning.mp4`. Attribution is recorded in `public/auth/ATTRIBUTION.md`.
+- Profile contact visibility: profile now displays email and mobile independently with verified state and a direct “Complete account verification” link.
 - Applied database migration `0002_phone_otp.sql` to make email optional for phone-only accounts and add unique `phone` plus `phone_verified_at` fields.
 - Li-Khata identity is now implemented across product metadata, sign-in, desktop navigation, profile language, onboarding visuals, cards, allocation, and the dashboard hero. The canonical supplied asset is `public/brand/li-khata-logo.png`.
 - Brand system: indigo is the trusted ledger foundation, emerald signals growth/progress and active navigation, and amber is reserved for primary action/reward. The dashboard hero uses a restrained logo-derived envelope geometry; avoid unrelated decorative graphics.
@@ -51,6 +54,7 @@ This file is the shared, human-readable coordination point for Codex and Claude 
 4. If changes are needed, run the release checklist again before the next commit/push.
 5. Preserve the Li-Khata palette hierarchy and reuse the canonical brand asset rather than inventing replacement logos or unrelated visual motifs.
 6. For a real MSG91 smoke test, use a phone number the human owner controls and confirm before sending the OTP. The widget ID/token and server auth key live only in ignored environment variables; never copy them into Git or this document.
+7. If continuing UI work, preserve the method chooser and linked-onboarding contract; do not reintroduce three active auth forms on the first screen.
 
 ### Known setup requirements
 

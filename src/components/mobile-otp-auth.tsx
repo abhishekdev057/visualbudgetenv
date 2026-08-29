@@ -50,7 +50,7 @@ function messageFrom(error: unknown, fallback: string) {
   return fallback;
 }
 
-export function MobileOtpAuth({ signup }: { signup: boolean }) {
+export function MobileOtpAuth({ signup, intent = "sign-in" }: { signup: boolean; intent?: "sign-in" | "link" }) {
   const router = useRouter();
   const widgetReplyRef = useRef<WidgetReply | null>(null);
   const [ready, setReady] = useState(false); const [fallback, setFallback] = useState(false); const [widgetConfig, setWidgetConfig] = useState<WidgetConfig | null>(null);
@@ -63,7 +63,7 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
     if (!accessToken) { setPending(false); setError("Verification was incomplete. Please request a fresh OTP."); return; }
     try {
       await apiRequest("/api/v1/auth/msg91", { method: "POST", body: JSON.stringify({ accessToken, client: "web" }) });
-      router.push("/"); router.refresh();
+      router.push("/onboarding/verify"); router.refresh();
     } catch (reason) { setPending(false); setError(messageFrom(reason, "We could not sign you in with that OTP.")); }
   }, [router]);
 
@@ -107,6 +107,6 @@ export function MobileOtpAuth({ signup }: { signup: boolean }) {
     <div className="otp-auth-heading"><span className="auth-provider-icon"><MessageSquareText /></span><div><strong>Continue with mobile</strong><small>{step === "phone" ? "A secure OTP confirms it’s really you." : `Code requested for +91 ${phone.replace(/\D/g, "")}. Delivery can take a moment.`}</small></div><span className="otp-secure"><ShieldCheck /> Secure</span></div>
     {step === "phone" ? <div className="otp-field-row"><label><span className="sr-only">Indian mobile number</span><b>+91</b><input value={phone} onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" autoComplete="tel-national" placeholder="Mobile number" aria-label="Indian mobile number" /></label><button type="button" className="otp-action" onClick={sendOtp} disabled={pending || !ready}>{pending ? <LoaderCircle className="spin" /> : <>Send code <ArrowRight /></>}</button></div> : <div className="otp-verify-row"><input value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" placeholder="Enter OTP" aria-label="One-time password" autoFocus/><button type="button" className="otp-action" onClick={verifyOtp} disabled={pending}>{pending ? <LoaderCircle className="spin" /> : <>Verify <ShieldCheck /></>}</button><button type="button" className="otp-resend" onClick={resendOtp} disabled={pending}><RefreshCw /> Resend</button></div>}
     {error && <p className="otp-error" role="alert">{error}</p>}
-    <p className="otp-note">By continuing, you agree to receive a one-time verification message. {signup ? "Your Li-Khata account will be created after verification." : ""}</p>
+    <p className="otp-note">By continuing, you agree to receive a one-time verification message. {intent === "link" ? "This number will be securely linked to your Li-Khata account." : signup ? "Your Li-Khata account will be created after verification." : ""}</p>
   </section>;
 }

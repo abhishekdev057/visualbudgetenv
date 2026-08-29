@@ -60,3 +60,13 @@ export async function findOrCreatePhoneUser(phone: string) {
     throw new AppError("MSG91_ACCOUNT_LINK_FAILED", "Your verified mobile number could not be linked. Please try again.", 409);
   }
 }
+
+export async function linkPhoneToUser(userId: string, phone: string) {
+  const [phoneOwner] = await db.select({ id: users.id }).from(users).where(eq(users.phone, phone)).limit(1);
+  if (phoneOwner && phoneOwner.id !== userId) throw new AppError("PHONE_ALREADY_LINKED", "This mobile number is already linked to another Li-Khata account.", 409);
+  const [user] = await db.update(users).set({ phone, phoneVerifiedAt: new Date(), updatedAt: new Date() })
+    .where(eq(users.id, userId)).returning({ id: users.id, email: users.email, phone: users.phone });
+  if (!user) throw new AppError("NOT_FOUND", "Your account could not be found.", 404);
+  const [profile] = await db.select({ displayName: userProfiles.displayName }).from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
+  return { ...user, displayName: profile?.displayName ?? "Li-Khata member" };
+}

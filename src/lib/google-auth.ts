@@ -22,11 +22,20 @@ export function googleRedirectUri(request: NextRequest) {
   return new URL("/api/v1/auth/google/callback", configured ?? request.nextUrl.origin).toString();
 }
 
-export function createGoogleState() { return { state: randomBytes(32).toString("base64url"), nonce: randomBytes(32).toString("base64url") }; }
-export function encodeGoogleState(value: { state: string; nonce: string }) { return `${value.state}.${value.nonce}`; }
+export type GoogleOAuthIntent = "sign-in" | "link";
+
+export function createGoogleState(intent: GoogleOAuthIntent = "sign-in", userId?: string) {
+  return { state: randomBytes(32).toString("base64url"), nonce: randomBytes(32).toString("base64url"), intent, userId };
+}
+export function encodeGoogleState(value: { state: string; nonce: string; intent: GoogleOAuthIntent; userId?: string }) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
 export function decodeGoogleState(value?: string) {
-  const [state, nonce, ...extra] = value?.split(".") ?? [];
-  return state && nonce && extra.length === 0 ? { state, nonce } : null;
+  try {
+    const parsed = JSON.parse(Buffer.from(value ?? "", "base64url").toString("utf8")) as Partial<{ state: string; nonce: string; intent: GoogleOAuthIntent; userId: string }>;
+    if (!parsed.state || !parsed.nonce || (parsed.intent !== "sign-in" && parsed.intent !== "link") || (parsed.intent === "link" && !parsed.userId)) return null;
+    return { state: parsed.state, nonce: parsed.nonce, intent: parsed.intent, userId: parsed.userId };
+  } catch { return null; }
 }
 export function safeStateMatch(left?: string, right?: string) {
   if (!left || !right || left.length !== right.length) return false;

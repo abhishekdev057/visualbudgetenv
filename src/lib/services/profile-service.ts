@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { budgetMonths, envelopes, transactions, userProfiles, userSettings, users } from "@/db/schema";
 
 export async function getProfile(userId: string) {
-  const [profile] = await db.select({ id: users.id, email: users.email, phone: users.phone, displayName: userProfiles.displayName, avatarUrl: userProfiles.avatarUrl, currency: userProfiles.currency, locale: userProfiles.locale, timezone: userProfiles.timezone, createdAt: users.createdAt })
+  const [profile] = await db.select({ id: users.id, email: users.email, emailVerifiedAt: users.emailVerifiedAt, phone: users.phone, phoneVerifiedAt: users.phoneVerifiedAt, displayName: userProfiles.displayName, avatarUrl: userProfiles.avatarUrl, currency: userProfiles.currency, locale: userProfiles.locale, timezone: userProfiles.timezone, createdAt: users.createdAt })
     .from(users).innerJoin(userProfiles, eq(userProfiles.userId, users.id)).where(eq(users.id, userId)).limit(1);
   return profile;
 }
