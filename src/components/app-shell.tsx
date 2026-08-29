@@ -13,8 +13,10 @@ const nav = [
 ];
 export function AppShell({ children, user }: { children: React.ReactNode; user: { displayName: string; email: string | null; phone: string | null } }) {
   const path = usePathname(); const router = useRouter();
+  const onboarding = path.startsWith("/onboarding");
   const active = (href: string) => href === "/" ? path === "/" : path.startsWith(href);
   async function signOut() { await apiRequest("/api/v1/auth/logout", { method: "POST" }); router.push("/sign-in"); router.refresh(); }
+  if (onboarding) return <main className="onboarding-shell">{children}</main>;
   return <div className="app-shell">
     <aside className="desktop-sidebar">
       <BrandLogo className="sidebar-logo" />
