@@ -1,7 +1,7 @@
 # Li-Khata auth background
 
-`budget-planning.mp4` is a short, muted background clip sourced from Coverr and used as a non-essential visual layer on the sign-in page. It is not required for authentication and is hidden when reduced motion is requested.
+The sign-in page uses the owner-provided Streamable embed (`kzjv29`) as a short, muted background layer. It is not required for authentication and is hidden when reduced motion is requested. The previously bundled MP4 remains as a local fallback asset for future self-hosting.
 
-Source: https://coverr.co/videos/calculating-expenses-with-cash-and-calculator
+Source: https://streamable.com/e/kzjv29
 
 Coverr license: https://coverr.co/license

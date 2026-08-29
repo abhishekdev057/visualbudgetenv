@@ -30,7 +30,7 @@ export function AuthForm({ mode, oauthError }: { mode: "sign-in" | "sign-up"; oa
 
   return <main className="auth-experience">
     <section className="auth-cinematic" aria-label="Li-Khata introduction">
-      <video className="auth-video" autoPlay loop muted playsInline preload="metadata" poster="/brand/li-khata-logo.png" aria-hidden="true"><source src="https://cdn.jsdelivr.net/gh/abhishekdev057/visualbudgetenv@0146a65/public/auth/budget-planning.mp4" type="video/mp4" /><source src="/auth/budget-planning.mp4" type="video/mp4" /></video>
+      <iframe className="auth-video-frame" src="https://streamable.com/e/kzjv29?autoplay=1&muted=1&nocontrols=1" title="Li-Khata background motion" allow="autoplay; fullscreen" allowFullScreen aria-hidden="true" />
       <div className="auth-cinematic-overlay" />
       <div className="auth-cinematic-content"><BrandLogo className="auth-brand" /><div className="auth-story"><span className="auth-kicker">A clearer way to plan</span><h1>Give every<br /><em>rupee</em> a purpose.</h1><p>Li-Khata makes a calm home for your monthly plan, spending, and progress.</p><div className="auth-trust-line"><CheckCircle2 /> Private by design <span /> <ShieldCheck /> Your data, your control</div></div></div>
     </section>
