@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+
+    <!-- fan of budget wedges -->
+    <path android:fillColor="#00CB91"
+        android:pathData="M54,63 L23.5,43.9 A36,36 0 0 1 40.5,29.6 Z" />
+    <path android:fillColor="#27CFC1"
+        android:pathData="M54,63 L42.9,28.8 A36,36 0 0 1 65.1,28.8 Z" />
+    <path android:fillColor="#F4A61D"
+        android:pathData="M54,63 L67.5,29.6 A36,36 0 0 1 84.5,43.9 Z" />
+
+    <!-- envelope -->
+    <path android:fillColor="#4B57E6"
+        android:pathData="M32,46 h44 a6,6 0 0 1 6,6 v26 a6,6 0 0 1 -6,6 h-44 a6,6 0 0 1 -6,-6 v-26 a6,6 0 0 1 6,-6 z" />
+    <path android:strokeColor="#0D1030" android:strokeWidth="3"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M31,49 L54,67 L77,49" />
+</vector>
